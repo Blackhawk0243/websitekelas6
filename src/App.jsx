@@ -1,58 +1,84 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
-  Palette, Type, Layout, MousePointer, 
-  CheckCircle, Award, AlertCircle, RefreshCcw, LayoutTemplate
+  Palette, Layout, Type, MousePointer, 
+  CheckCircle, Award, AlertCircle, RefreshCcw, 
+  Monitor, Box, Layers, Grid
 } from 'lucide-react';
 
+// --- DATA KLIEN (SOAL) ---
 const CLIENT_BRIEFS = [
   {
     id: 1,
     clientName: "Kapten Robby",
     avatar: "🤖",
     company: "Toko Robot Masa Depan",
-    request: "Saya butuh website yang terlihat CANGGIH dan FUTURISTIK. Gunakan latar belakang gelap, tulisan besar, dan sudut kotak yang tajam. Jangan pakai warna pink!",
-    targets: { theme: 'dark', fontStyle: 'mono', borderRadius: 'sharp', primaryColor: 'cyan', mood: 'tech' }
+    request: "Buatkan website yang CANGGIH! Saya mau latar belakang gelap dengan corak kotak-kotak (Grid). Garis tepinya harus tebal dan warnanya neon (Cyan/Hijau). Sudut kotak jangan bulat, harus tajam!",
+    targets: { 
+      theme: 'dark', 
+      pattern: 'grid', 
+      radius: 'sharp', 
+      border: 'thick', 
+      mood: 'tech' 
+    }
   },
   {
     id: 2,
     clientName: "Putri Donat",
     avatar: "🍩",
-    company: "Dunia Manis Donat",
-    request: "Buatkan website yang LUCU dan CERIA! Saya suka warna pink atau kuning. Sudut-sudut tombolnya harus bulat biar tidak tajam. Tulisannya harus santai.",
-    targets: { theme: 'light', fontStyle: 'handwriting', borderRadius: 'rounded', primaryColor: 'pink', mood: 'fun' }
+    company: "Kerajaan Manis",
+    request: "Saya suka warna PINK atau KUNING! Website harus terlihat lembut. Gunakan font tulisan tangan, sudut kotak yang sangat bulat, dan berikan bayangan yang tebal agar terlihat timbul.",
+    targets: { 
+      theme: 'fun', 
+      pattern: 'dots', 
+      radius: 'rounded', 
+      border: 'none', 
+      mood: 'cute' 
+    }
   },
   {
     id: 3,
     clientName: "Profesor Alam",
     avatar: "🌿",
-    company: "Taman Hutan Kota",
-    request: "Website harus terlihat TENANG dan ALAMI. Gunakan warna hijau. Saya tidak suka animasi yang berlebihan. Tulisannya harus rapi dan mudah dibaca.",
-    targets: { theme: 'nature', fontStyle: 'serif', borderRadius: 'medium', primaryColor: 'green', mood: 'calm' }
+    company: "Hutan Lindung",
+    request: "Website yang tenang. Gunakan warna HIJAU atau PUTIH. Saya tidak suka garis putus-putus. Font harus yang resmi (Serif). Buat transparansi sedikit agar menyatu dengan alam.",
+    targets: { 
+      theme: 'nature', 
+      pattern: 'none', 
+      radius: 'medium', 
+      border: 'thin', 
+      mood: 'calm' 
+    }
   }
 ];
 
+// --- PILIHAN OPSI ---
+const PATTERNS = [
+  { label: 'Polos', value: 'none' },
+  { label: 'Titik-titik', value: 'dots' },
+  { label: 'Kotak Grid', value: 'grid' },
+  { label: 'Garis Miring', value: 'lines' },
+];
+
 const FONTS = [
-  { label: 'Standar (Sans)', value: 'font-sans' },
-  { label: 'Klasik (Serif)', value: 'font-serif' },
-  { label: 'Koding (Mono)', value: 'font-mono' },
+  { label: 'Modern (Sans)', value: 'font-sans' },
+  { label: 'Resmi (Serif)', value: 'font-serif' },
+  { label: 'Kode (Mono)', value: 'font-mono' },
+  { label: 'Tulisan Tangan', value: 'font-hand' }, // Custom class logic below
 ];
 
-const COLORS = [
-  { label: 'Hitam Gelap', value: '#1a202c', type: 'dark' },
-  { label: 'Putih Bersih', value: '#ffffff', type: 'light' },
-  { label: 'Pink Neon', value: '#f687b3', type: 'fun' },
-  { label: 'Biru Langit', value: '#63b3ed', type: 'calm' },
-  { label: 'Hijau Hutan', value: '#48bb78', type: 'nature' },
-  { label: 'Ungu Misterius', value: '#9f7aea', type: 'tech' },
-  { label: 'Kuning Ceria', value: '#f6e05e', type: 'fun' },
-  { label: 'Cyan Cyber', value: '#0bc5ea', type: 'tech' },
+const BORDER_STYLES = [
+  { label: 'Garis Lurus', value: 'solid' },
+  { label: 'Putus-putus', value: 'dashed' },
+  { label: 'Titik-titik', value: 'dotted' },
+  { label: 'Ganda', value: 'double' },
 ];
 
-const BORDERS = [
-  { label: 'Kotak Tajam', value: '0px', type: 'sharp' },
-  { label: 'Sedikit Melengkung', value: '8px', type: 'medium' },
-  { label: 'Sangat Bulat', value: '24px', type: 'rounded' },
-  { label: 'Lonjong (Pill)', value: '9999px', type: 'rounded' },
+const ANIMATIONS = [
+  { label: 'Diam', value: 'none' },
+  { label: 'Muncul (Fade)', value: 'fade-in' },
+  { label: 'Melompat (Bounce)', value: 'bounce' },
+  { label: 'Geser (Slide)', value: 'slide-up' },
+  { label: 'Berputar (Spin)', value: 'spin' },
 ];
 
 export default function App() {
@@ -60,50 +86,99 @@ export default function App() {
   const [showScore, setShowScore] = useState(false);
   const [scoreData, setScoreData] = useState({ score: 0, feedback: [] });
 
+  // --- 20 FITUR CONFIGURABLE ---
   const [config, setConfig] = useState({
-    bgColor: '#ffffff', textColor: '#000000', alignment: 'center', containerWidth: '80%',
-    fontFamily: 'font-sans', titleSize: 40, descSize: 16, lineHeight: 1.5,
-    cardColor: '#f7fafc', cardBorderWidth: 2, cardBorderColor: '#cbd5e0', cardShadow: 'none', cardRadius: '8px',
-    btnText: 'Klik Saya!', btnColor: '#3182ce', btnTextColor: '#ffffff', btnRadius: '4px',
-    opacity: 100, rotation: 0, animation: 'none', showImage: true,
+    // KELOMPOK 1: LATAR BELAKANG (5 Fitur)
+    1: '#f3f4f6',      // bgColor
+    2: 'none',         // bgPattern
+    3: 'center',       // layoutAlign (left/center/right)
+    4: 40,             // pagePadding
+    5: 100,            // bgOpacity
+
+    // KELOMPOK 2: WADAH KONTEN (5 Fitur)
+    6: 80,             // containerWidth (%)
+    7: '#ffffff',      // cardColor
+    8: 100,            // cardOpacity
+    9: 'lg',           // shadow (none, sm, lg, xl)
+    10: 16,            // borderRadius (px)
+
+    // KELOMPOK 3: GARIS & DEKORASI (5 Fitur)
+    11: 2,             // borderWidth
+    12: '#e5e7eb',     // borderColor
+    13: 'solid',       // borderStyle
+    14: 0,             // rotation (deg)
+    15: '0px',         // blurEffect
+
+    // KELOMPOK 4: TEKS & TOMBOL (5 Fitur)
+    16: 'font-sans',   // fontFamily
+    17: '#1f2937',     // textColor
+    18: 24,            // titleSize
+    19: '#3b82f6',     // btnColor
+    20: 'none'         // animation
   });
 
   const activeBrief = CLIENT_BRIEFS[currentBriefIndex];
 
-  const updateConfig = (key, value) => setConfig(prev => ({ ...prev, [key]: value }));
+  const updateConfig = (id, value) => {
+    setConfig(prev => ({ ...prev, [id]: value }));
+  };
 
+  // --- LOGIKA PENILAIAN ---
   const calculateScore = () => {
     let points = 0;
     let feedback = [];
-    const target = activeBrief.targets;
+    const t = activeBrief.targets;
 
-    if (target.mood === 'tech' && ['#1a202c', '#000000'].includes(config.bgColor)) points += 20;
-    else if (target.mood === 'fun' && ['#f687b3', '#f6e05e', '#ffffff'].includes(config.bgColor)) points += 20;
-    else if (target.mood === 'calm' && ['#ffffff', '#e2e8f0'].includes(config.bgColor)) points += 20;
-    else if (target.mood === 'nature' && ['#ffffff', '#f0fff4'].includes(config.bgColor)) points += 20;
-    else points += 5;
+    // 1. Cek Warna & Mood (Config 1 & 7 & 19)
+    const colors = [config[1], config[7], config[19]];
+    const isDark = ['#000000', '#1a202c', '#374151'].some(c => colors.includes(c));
+    const isPink = ['#fbcfe8', '#db2777', '#f472b6'].some(c => colors.includes(c));
+    const isGreen = ['#dcfce7', '#16a34a', '#22c55e'].some(c => colors.includes(c));
+    const isNeon = ['#06b6d4', '#22d3ee', '#bef264'].some(c => colors.includes(c));
 
-    if (target.fontStyle === 'mono' && config.fontFamily === 'font-mono') { points += 15; feedback.push("✅ Font canggih!"); }
-    else if (target.fontStyle === 'handwriting' && config.fontFamily === 'font-sans') { points += 10; feedback.push("✅ Font cukup santai."); }
-    else if (target.fontStyle === 'serif' && config.fontFamily === 'font-serif') { points += 15; feedback.push("✅ Font elegan."); }
-    else feedback.push("⚠️ Font kurang cocok.");
+    if (t.mood === 'tech') {
+      if (isDark) { points += 20; feedback.push("✅ Warna gelap sangat futuristik!"); }
+      else { feedback.push("⚠️ Klien minta tema canggih (gelap), tapi terlalu terang."); }
+    } else if (t.mood === 'cute') {
+      if (isPink) { points += 20; feedback.push("✅ Warna Pink/Kuning sangat manis!"); }
+      else { feedback.push("⚠️ Kurang ceria warnanya."); }
+    } else if (t.mood === 'calm') {
+      if (isGreen || config[1] === '#ffffff') { points += 20; feedback.push("✅ Warna alam menenangkan."); }
+    }
 
-    if (target.borderRadius === 'sharp' && config.cardRadius === '0px') points += 15;
-    else if (target.borderRadius === 'rounded' && parseInt(config.cardRadius) > 10) points += 15;
-    else if (target.borderRadius === 'medium' && parseInt(config.cardRadius) > 0 && parseInt(config.cardRadius) <= 10) points += 15;
-    else feedback.push(`⚠️ Sudut ${target.borderRadius === 'sharp' ? 'harus tajam' : 'harus bulat'}.`);
+    // 2. Cek Pola (Config 2)
+    if (t.pattern === 'grid' && config[2] === 'grid') { points += 10; feedback.push("✅ Pola Grid cocok untuk robot."); }
+    else if (t.pattern === 'dots' && config[2] === 'dots') { points += 10; feedback.push("✅ Pola titik-titik lucu."); }
+    else if (t.pattern === 'none' && config[2] === 'none') { points += 10; feedback.push("✅ Polos dan bersih."); }
+    else if (t.pattern !== 'none' && config[2] === 'none') { points += 5; } // Partial
 
-    if (target.primaryColor === 'pink' && (config.btnColor === '#f687b3' || config.titleColor === '#f687b3')) points += 20;
-    else if (target.primaryColor === 'cyan' && (config.btnColor === '#0bc5ea' || config.titleColor === '#0bc5ea')) points += 20;
-    else if (target.primaryColor === 'green' && config.btnColor === '#48bb78') points += 20;
-    else points += 5;
+    // 3. Cek Sudut (Config 10)
+    const radius = parseInt(config[10]);
+    if (t.radius === 'sharp' && radius === 0) points += 15;
+    else if (t.radius === 'rounded' && radius >= 20) points += 15;
+    else if (t.radius === 'medium' && radius > 0 && radius < 20) points += 15;
+    else feedback.push(`⚠️ Sudut kotak ${t.radius === 'sharp' ? 'harus tajam (0)' : 'harus bulat'}.`);
 
-    if (config.bgColor === config.textColor) { points -= 20; feedback.push("❌ Teks tidak terbaca!"); }
-    else points += 10;
+    // 4. Cek Garis (Config 11 & 13)
+    if (t.border === 'thick' && config[11] >= 4) points += 15;
+    else if (t.border === 'none' && config[11] === 0) points += 15;
+    else if (t.border === 'thin' && config[11] > 0 && config[11] < 4) points += 15;
+    
+    // 5. Cek Font (Config 16)
+    if (t.mood === 'tech' && config[16] === 'font-mono') points += 10;
+    else if (t.mood === 'cute' && config[16] === 'font-hand') points += 10;
+    else if (t.mood === 'calm' && config[16] === 'font-serif') points += 10;
+    else points += 5; // Bonus usaha
+
+    // 6. Keterbacaan (Kontras)
+    if (config[1] === config[17] || config[7] === config[17]) {
+      points -= 20;
+      feedback.push("❌ Teks tidak terbaca! Warnanya sama dengan latar.");
+    } else {
+      points += 30; // Bonus dasar
+    }
 
     if (points > 100) points = 100;
-    if (points < 0) points = 0;
-
     setScoreData({ score: points, feedback });
     setShowScore(true);
   };
@@ -111,101 +186,306 @@ export default function App() {
   const nextBrief = () => {
     setShowScore(false);
     setCurrentBriefIndex((prev) => (prev + 1) % CLIENT_BRIEFS.length);
-    setConfig(prev => ({ ...prev, bgColor: '#ffffff', fontFamily: 'font-sans' }));
+    // Reset defaults
+    setConfig({ ...config, 1: '#ffffff', 2: 'none', 16: 'font-sans' });
   };
 
+  // Helper untuk input warna
+  const ColorPicker = ({ id, label }) => (
+    <div className="mb-2">
+      <label className="text-xs font-semibold text-gray-500 block mb-1">{label}</label>
+      <div className="flex flex-wrap gap-1">
+        {['#ffffff', '#000000', '#1f2937', '#ef4444', '#f97316', '#eab308', '#22c55e', '#06b6d4', '#3b82f6', '#8b5cf6', '#db2777'].map(c => (
+          <button
+            key={c}
+            onClick={() => updateConfig(id, c)}
+            className={`w-5 h-5 rounded-full border border-gray-300 ${config[id] === c ? 'ring-2 ring-offset-1 ring-blue-500' : ''}`}
+            style={{ backgroundColor: c }}
+          />
+        ))}
+      </div>
+    </div>
+  );
+
   return (
-    <div className="min-h-screen bg-gray-100 font-sans text-gray-800 flex flex-col md:flex-row overflow-hidden">
-      <div className="w-full md:w-1/3 bg-white border-r border-gray-200 flex flex-col h-screen shadow-xl z-10 overflow-y-auto">
-        <div className="p-4 bg-indigo-600 text-white flex justify-between items-center sticky top-0 z-20">
-          <h1 className="font-bold text-xl flex items-center gap-2"><Palette size={20} /> Studio Desain</h1>
-          <span className="text-xs bg-indigo-500 px-2 py-1 rounded">Level 6 SD</span>
+    <div className="h-screen bg-gray-100 flex flex-col md:flex-row font-sans overflow-hidden text-gray-800">
+      
+      {/* --- SIDEBAR PANEL (20 FITUR) --- */}
+      <div className="w-full md:w-80 bg-white border-r border-gray-200 flex flex-col h-full shadow-xl z-20">
+        <div className="p-3 bg-blue-600 text-white flex items-center justify-between shadow-md shrink-0">
+          <h1 className="font-bold flex items-center gap-2 text-sm"><Layers size={18} /> Editor Desain</h1>
+          <span className="text-[10px] bg-blue-800 px-2 py-0.5 rounded-full">20 Fitur</span>
         </div>
-        <div className="p-4 space-y-6">
-          {/* Controls */}
-          <div className="space-y-3">
-            <h3 className="font-bold text-indigo-600 flex items-center gap-2 text-sm uppercase"><LayoutTemplate size={16} /> 1. Dasar Halaman</h3>
-            <div className="flex flex-wrap gap-2">
-              {COLORS.map((c) => (
-                <button key={c.value} onClick={() => updateConfig('bgColor', c.value)} title={c.label}
-                  className={`w-8 h-8 rounded-full border-2 ${config.bgColor === c.value ? 'border-indigo-600 scale-110' : 'border-gray-200'}`} style={{ backgroundColor: c.value }} />
-              ))}
+
+        <div className="flex-1 overflow-y-auto p-4 space-y-6 custom-scrollbar">
+          
+          {/* GRUP 1: LATAR BELAKANG */}
+          <div className="bg-slate-50 p-3 rounded-lg border border-slate-100">
+            <h3 className="font-bold text-blue-600 text-xs uppercase mb-3 flex items-center gap-1">
+              <Grid size={14}/> 1. Latar Belakang
+            </h3>
+            
+            <ColorPicker id={1} label="1. Warna Latar" />
+            
+            <div className="mb-3">
+              <label className="text-xs font-semibold text-gray-500">2. Corak / Pola</label>
+              <div className="grid grid-cols-2 gap-1 mt-1">
+                {PATTERNS.map(p => (
+                  <button key={p.value} onClick={() => updateConfig(2, p.value)}
+                    className={`text-xs p-1 border rounded ${config[2]===p.value ? 'bg-blue-100 border-blue-400 text-blue-700' : 'bg-white'}`}>
+                    {p.label}
+                  </button>
+                ))}
+              </div>
             </div>
-            <div className="flex bg-gray-100 rounded p-1">
-              {['left', 'center', 'right'].map((align) => (
-                <button key={align} onClick={() => updateConfig('alignment', align)} className={`flex-1 py-1 text-xs capitalize rounded ${config.alignment === align ? 'bg-white shadow text-indigo-600 font-bold' : 'text-gray-500'}`}>{align}</button>
-              ))}
+
+            <div className="mb-3">
+              <label className="text-xs font-semibold text-gray-500">3. Perataan Halaman</label>
+              <div className="flex bg-gray-200 rounded p-0.5 mt-1">
+                {['left', 'center', 'right'].map(a => (
+                  <button key={a} onClick={() => updateConfig(3, a)} className={`flex-1 capitalize text-xs py-1 rounded ${config[3]===a ? 'bg-white shadow' : 'text-gray-500'}`}>{a}</button>
+                ))}
+              </div>
+            </div>
+
+            <div className="grid grid-cols-2 gap-2">
+              <div>
+                <label className="text-[10px] font-semibold text-gray-500">4. Padding</label>
+                <input type="range" min="0" max="100" value={config[4]} onChange={e => updateConfig(4, e.target.value)} className="w-full h-1 bg-gray-300 rounded appearance-none" />
+              </div>
+              <div>
+                <label className="text-[10px] font-semibold text-gray-500">5. Gelap/Terang</label>
+                <input type="range" min="20" max="100" value={config[5]} onChange={e => updateConfig(5, e.target.value)} className="w-full h-1 bg-gray-300 rounded appearance-none" />
+              </div>
             </div>
           </div>
-          <hr />
-          <div className="space-y-3">
-            <h3 className="font-bold text-indigo-600 flex items-center gap-2 text-sm uppercase"><Layout size={16} /> 2. Kotak Konten</h3>
-            <input type="range" min="30" max="100" value={parseInt(config.containerWidth)} onChange={(e) => updateConfig('containerWidth', `${e.target.value}%`)} className="w-full" />
-            <div className="flex gap-2">
-               <input type="color" value={config.cardColor} onChange={(e) => updateConfig('cardColor', e.target.value)} className="h-8 w-1/2 cursor-pointer" />
-               <select className="w-1/2 text-sm border rounded" value={config.cardRadius} onChange={(e) => updateConfig('cardRadius', e.target.value)}>
-                {BORDERS.map(b => <option key={b.value} value={b.value}>{b.label}</option>)}
+
+          {/* GRUP 2: WADAH KONTEN */}
+          <div className="bg-slate-50 p-3 rounded-lg border border-slate-100">
+            <h3 className="font-bold text-blue-600 text-xs uppercase mb-3 flex items-center gap-1">
+              <Box size={14}/> 2. Wadah Konten
+            </h3>
+
+            <div className="mb-3">
+              <label className="text-xs font-semibold text-gray-500 block">6. Lebar Kotak ({config[6]}%)</label>
+              <input type="range" min="30" max="100" value={config[6]} onChange={e => updateConfig(6, e.target.value)} className="w-full h-2 bg-blue-100 rounded-lg appearance-none cursor-pointer" />
+            </div>
+
+            <ColorPicker id={7} label="7. Warna Kotak" />
+
+            <div className="grid grid-cols-2 gap-2 mb-2">
+              <div>
+                <label className="text-[10px] font-semibold text-gray-500">8. Transparansi</label>
+                <input type="range" min="0" max="100" value={config[8]} onChange={e => updateConfig(8, e.target.value)} className="w-full" />
+              </div>
+              <div>
+                <label className="text-[10px] font-semibold text-gray-500">10. Sudut (Radius)</label>
+                <input type="number" value={config[10]} onChange={e => updateConfig(10, e.target.value)} className="w-full border rounded p-1 text-xs" />
+              </div>
+            </div>
+
+            <div className="mb-1">
+              <label className="text-xs font-semibold text-gray-500">9. Bayangan</label>
+              <select value={config[9]} onChange={e => updateConfig(9, e.target.value)} className="w-full text-xs border rounded p-1">
+                <option value="none">Tidak Ada</option>
+                <option value="sm">Tipis</option>
+                <option value="lg">Sedang</option>
+                <option value="2xl">Tebal & Luas</option>
               </select>
             </div>
           </div>
-          <hr />
-          <div className="space-y-3">
-            <h3 className="font-bold text-indigo-600 flex items-center gap-2 text-sm uppercase"><Type size={16} /> 3. Tulisan</h3>
-            <select className="w-full p-2 text-sm border rounded" value={config.fontFamily} onChange={(e) => updateConfig('fontFamily', e.target.value)}>
+
+          {/* GRUP 3: GARIS & DEKORASI */}
+          <div className="bg-slate-50 p-3 rounded-lg border border-slate-100">
+            <h3 className="font-bold text-blue-600 text-xs uppercase mb-3 flex items-center gap-1">
+              <Layout size={14}/> 3. Garis Tepi
+            </h3>
+            
+            <div className="flex gap-2 mb-3">
+              <div className="flex-1">
+                <label className="text-[10px] text-gray-500 font-bold">11. Tebal</label>
+                <input type="number" min="0" max="20" value={config[11]} onChange={e => updateConfig(11, e.target.value)} className="w-full border rounded p-1 text-xs" />
+              </div>
+              <div className="flex-1">
+                <label className="text-[10px] text-gray-500 font-bold">14. Putar (Deg)</label>
+                <input type="number" min="-180" max="180" value={config[14]} onChange={e => updateConfig(14, e.target.value)} className="w-full border rounded p-1 text-xs" />
+              </div>
+            </div>
+
+            <ColorPicker id={12} label="12. Warna Garis" />
+
+            <div className="mb-2">
+              <label className="text-xs font-semibold text-gray-500">13. Gaya Garis</label>
+              <select value={config[13]} onChange={e => updateConfig(13, e.target.value)} className="w-full text-xs border rounded p-1 mt-1">
+                {BORDER_STYLES.map(b => <option key={b.value} value={b.value}>{b.label}</option>)}
+              </select>
+            </div>
+
+            <div className="mt-2">
+              <label className="text-xs font-semibold text-gray-500 flex justify-between">15. Efek Blur <span>{config[15]}</span></label>
+              <input type="range" min="0" max="20" value={parseInt(config[15])} onChange={e => updateConfig(15, `${e.target.value}px`)} className="w-full h-1 bg-gray-300" />
+            </div>
+          </div>
+
+          {/* GRUP 4: KONTEN */}
+          <div className="bg-slate-50 p-3 rounded-lg border border-slate-100">
+            <h3 className="font-bold text-blue-600 text-xs uppercase mb-3 flex items-center gap-1">
+              <Type size={14}/> 4. Teks & Animasi
+            </h3>
+
+            <div className="mb-2">
+              <label className="text-xs font-semibold text-gray-500">16. Jenis Font</label>
+              <select value={config[16]} onChange={e => updateConfig(16, e.target.value)} className="w-full text-xs border rounded p-1">
                 {FONTS.map(f => <option key={f.value} value={f.value}>{f.label}</option>)}
-            </select>
-            <input type="color" value={config.textColor} onChange={(e) => updateConfig('textColor', e.target.value)} className="w-full h-8 cursor-pointer" />
+              </select>
+            </div>
+
+            <ColorPicker id={17} label="17. Warna Teks" />
+            <ColorPicker id={19} label="19. Warna Tombol" />
+
+            <div className="mb-2">
+               <label className="text-xs font-semibold text-gray-500">18. Ukuran Judul</label>
+               <input type="range" min="16" max="60" value={config[18]} onChange={e => updateConfig(18, e.target.value)} className="w-full h-1 bg-gray-300" />
+            </div>
+
+            <div className="mb-1">
+              <label className="text-xs font-semibold text-gray-500">20. Animasi Masuk</label>
+              <select value={config[20]} onChange={e => updateConfig(20, e.target.value)} className="w-full text-xs border rounded p-1 bg-yellow-50 border-yellow-200">
+                {ANIMATIONS.map(a => <option key={a.value} value={a.value}>{a.label}</option>)}
+              </select>
+            </div>
           </div>
-          <hr />
-          <div className="space-y-3">
-            <h3 className="font-bold text-indigo-600 flex items-center gap-2 text-sm uppercase"><MousePointer size={16} /> 4. Tombol</h3>
-            <input type="text" value={config.btnText} onChange={(e) => updateConfig('btnText', e.target.value)} className="w-full p-2 border rounded text-sm" />
-            <div className="flex flex-wrap gap-2">{COLORS.map((c) => (<button key={c.value} onClick={() => updateConfig('btnColor', c.value)} className={`w-6 h-6 rounded border ${config.btnColor === c.value ? 'ring-2 ring-indigo-500' : 'border-gray-200'}`} style={{ backgroundColor: c.value }} />))}</div>
-            <select className="w-full p-2 text-sm border rounded" value={config.animation} onChange={(e) => updateConfig('animation', e.target.value)}>
-              <option value="none">Diam</option><option value="bounce">Melompat</option><option value="pulse">Berdenyut</option><option value="spin">Berputar</option>
-            </select>
-          </div>
+
           <div className="h-20"></div>
         </div>
       </div>
 
-      <div className="flex-1 flex flex-col relative bg-gray-50">
-        <div className="bg-white p-4 shadow-sm border-b flex flex-col sm:flex-row items-center justify-between gap-4 z-10">
-          <div className="flex items-center gap-4">
-            <div className="text-4xl bg-gray-100 p-2 rounded-full">{activeBrief.avatar}</div>
-            <div><h2 className="font-bold text-lg">{activeBrief.clientName}</h2><p className="text-sm text-gray-600">{activeBrief.company}</p></div>
+      {/* --- AREA UTAMA (PREVIEW) --- */}
+      <div className="flex-1 flex flex-col relative bg-gray-100 h-full overflow-hidden">
+        
+        {/* HEADER KLIEN */}
+        <div className="bg-white p-3 shadow-sm border-b z-10 flex items-center justify-between shrink-0">
+          <div className="flex items-center gap-3">
+            <div className="text-3xl bg-blue-50 p-2 rounded-full">{activeBrief.avatar}</div>
+            <div>
+              <h2 className="font-bold text-gray-800 text-sm">{activeBrief.clientName}</h2>
+              <div className="text-xs bg-gray-100 px-2 py-0.5 rounded text-gray-600 inline-block mt-0.5">{activeBrief.company}</div>
+            </div>
           </div>
-          <div className="bg-yellow-50 border border-yellow-200 p-2 rounded text-sm text-yellow-800 italic flex-1 mx-2">"{activeBrief.request}"</div>
-          <button onClick={calculateScore} className="bg-green-600 hover:bg-green-700 text-white px-6 py-3 rounded-lg font-bold shadow flex items-center gap-2"><CheckCircle size={20} /> Kirim</button>
+          <div className="flex-1 mx-4 bg-yellow-50 border-l-4 border-yellow-400 p-2 text-xs text-gray-700 italic hidden md:block">
+            "{activeBrief.request}"
+          </div>
+          <button onClick={calculateScore} className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg font-bold shadow text-sm flex items-center gap-2 transition-transform hover:scale-105">
+            <CheckCircle size={16} /> Kirim
+          </button>
         </div>
 
-        <div className="flex-1 p-8 overflow-y-auto flex items-center justify-center transition-colors duration-500" style={{ backgroundColor: config.bgColor }}>
-          <div className={`transition-all duration-300 flex flex-col relative overflow-hidden ${config.animation === 'bounce' ? 'animate-bounce' : ''} ${config.animation === 'pulse' ? 'animate-pulse' : ''} ${config.animation === 'spin' ? 'animate-spin' : ''}`}
-            style={{ width: config.containerWidth, backgroundColor: config.cardColor, borderWidth: `${config.cardBorderWidth}px`, borderColor: config.cardBorderColor, borderRadius: config.cardRadius, padding: '40px', textAlign: config.alignment, boxShadow: config.cardShadow === 'none' ? 'none' : '0 10px 15px rgba(0,0,0,0.1)', opacity: config.opacity / 100, transform: `rotate(${config.rotation}deg)` }}>
-            {config.showImage && <div className="mb-6 text-6xl select-none filter drop-shadow-md">{activeBrief.avatar}</div>}
-            <h1 className={`${config.fontFamily} font-bold mb-4`} style={{ color: config.textColor, fontSize: `${config.titleSize}px`, lineHeight: 1.2 }}>Selamat Datang di {activeBrief.company}</h1>
-            <p className={`${config.fontFamily} mb-8`} style={{ color: config.textColor, fontSize: `${config.descSize}px`, lineHeight: config.lineHeight, opacity: 0.8 }}>Kami menyediakan layanan terbaik. Ini adalah contoh tampilan website yang sedang didesain oleh siswa kelas 6.</p>
-            <div className={`flex ${config.alignment === 'center' ? 'justify-center' : config.alignment === 'right' ? 'justify-end' : 'justify-start'}`}>
-              <button style={{ backgroundColor: config.btnColor, color: config.btnTextColor, borderRadius: config.btnRadius, padding: '12px 24px', fontSize: '16px', fontWeight: 'bold', border: 'none', cursor: 'pointer', boxShadow: '0 4px 6px rgba(0,0,0,0.1)' }} className="hover:opacity-90 transform transition hover:-translate-y-1">{config.btnText}</button>
+        {/* CANVAS PREVIEW */}
+        <div 
+          className="flex-1 overflow-auto flex relative transition-all duration-500"
+          style={{ 
+            backgroundColor: config[1],
+            backgroundImage: config[2] === 'dots' ? 'radial-gradient(#cbd5e1 1px, transparent 1px)' : 
+                             config[2] === 'grid' ? 'linear-gradient(#cbd5e1 1px, transparent 1px), linear-gradient(90deg, #cbd5e1 1px, transparent 1px)' : 
+                             config[2] === 'lines' ? 'repeating-linear-gradient(45deg, #cbd5e1 0, #cbd5e1 1px, transparent 0, transparent 50%)' : 'none',
+            backgroundSize: config[2] === 'grid' ? '20px 20px' : config[2] === 'dots' ? '20px 20px' : '10px 10px',
+            justifyContent: config[3] === 'center' ? 'center' : config[3] === 'right' ? 'flex-end' : 'flex-start',
+            alignItems: 'center',
+            padding: `${config[4]}px`,
+            filter: `brightness(${config[5]}%)`
+          }}
+        >
+          {/* WEBSITE SISWA */}
+          <div 
+            className={`transition-all duration-500 flex flex-col relative
+              ${config[20] === 'bounce' ? 'animate-bounce' : ''}
+              ${config[20] === 'spin' ? 'animate-spin' : ''}
+              ${config[20] === 'fade-in' ? 'animate-[pulse_1s_ease-in-out]' : ''}
+            `}
+            style={{
+              width: `${config[6]}%`,
+              minHeight: '300px',
+              backgroundColor: config[7],
+              opacity: config[8] / 100,
+              boxShadow: config[9] === 'none' ? 'none' : config[9] === 'sm' ? '0 1px 3px rgba(0,0,0,0.1)' : config[9] === 'lg' ? '0 10px 15px rgba(0,0,0,0.2)' : '0 25px 50px rgba(0,0,0,0.35)',
+              borderRadius: `${config[10]}px`,
+              borderWidth: `${config[11]}px`,
+              borderColor: config[12],
+              borderStyle: config[13],
+              transform: `rotate(${config[14]}deg)`,
+              backdropFilter: `blur(${config[15]})`,
+              padding: '40px'
+            }}
+          >
+            {/* Header Konten */}
+            <div className="flex items-center justify-between mb-8 border-b pb-4" style={{ borderColor: `${config[12]}40` }}>
+              <div className="text-2xl">{activeBrief.avatar}</div>
+              <div className={`text-sm font-bold uppercase tracking-widest ${config[16]}`} style={{ color: config[17] }}>Menu</div>
             </div>
-            <div className="mt-12 pt-4 border-t border-gray-300/30 text-xs opacity-50" style={{ color: config.textColor }}>&copy; 2024 {activeBrief.company}. Didesain oleh Tim Siswa.</div>
+
+            {/* Isi Konten */}
+            <h1 
+              className={`font-bold mb-4 leading-tight ${config[16] === 'font-hand' ? 'italic' : ''} ${config[16]}`}
+              style={{ color: config[17], fontSize: `${config[18]}px` }}
+            >
+              Selamat Datang di<br/>{activeBrief.company}
+            </h1>
+            
+            <p className={`mb-8 opacity-80 leading-relaxed ${config[16]}`} style={{ color: config[17] }}>
+              Kami menyediakan solusi terbaik untuk kebutuhan Anda. Kualitas nomor satu, desain futuristik, dan pelayanan ramah adalah prioritas kami.
+            </p>
+
+            {/* Tombol */}
+            <button
+              className={`px-6 py-3 font-bold transition-transform hover:-translate-y-1 active:scale-95 ${config[16]}`}
+              style={{
+                backgroundColor: config[19],
+                color: '#ffffff',
+                borderRadius: `${config[10] / 2}px`, // Radius tombol setengah dari kotak
+                border: 'none',
+                boxShadow: '0 4px 6px rgba(0,0,0,0.1)'
+              }}
+            >
+              Mulai Sekarang &rarr;
+            </button>
+
+             {/* Footer Dummy */}
+             <div className="mt-auto pt-8 text-xs opacity-40 text-center" style={{ color: config[17] }}>
+               &copy; 2024 Didesain oleh Siswa Kelas 6
+             </div>
           </div>
         </div>
       </div>
 
+      {/* --- MODAL HASIL --- */}
       {showScore && (
-        <div className="fixed inset-0 bg-black/70 z-50 flex items-center justify-center p-4 backdrop-blur-sm">
-          <div className="bg-white rounded-2xl shadow-2xl p-8 max-w-md w-full text-center animate-in zoom-in duration-300">
-            <div className="mb-4 flex justify-center">{scoreData.score >= 80 ? <Award size={64} className="text-yellow-500" /> : <AlertCircle size={64} className="text-orange-500" />}</div>
-            <h2 className="text-2xl font-bold text-gray-800 mb-2">{scoreData.score >= 80 ? "Luar Biasa!" : "Sedikit Lagi!"}</h2>
-            <div className="text-6xl font-black text-indigo-600 mb-4 font-mono">{scoreData.score}<span className="text-xl text-gray-400 font-normal">/100</span></div>
-            <div className="bg-gray-50 rounded-lg p-4 mb-6 text-left text-sm text-gray-700 max-h-40 overflow-y-auto border">
-              <p className="font-bold mb-2 text-gray-500 uppercase text-xs">Masukan Klien:</p>
-              {scoreData.feedback.length > 0 ? <ul className="space-y-2">{scoreData.feedback.map((fb, idx) => <li key={idx}><span>{fb}</span></li>)}</ul> : <p className="text-green-600">Sempurna! Tidak ada komplain.</p>}
+        <div className="fixed inset-0 bg-black/80 z-50 flex items-center justify-center p-4 backdrop-blur-sm">
+          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md overflow-hidden animate-in zoom-in duration-300">
+            <div className={`h-32 flex items-center justify-center ${scoreData.score >= 80 ? 'bg-green-500' : 'bg-orange-500'}`}>
+              {scoreData.score >= 80 ? <Award size={80} className="text-white drop-shadow-lg" /> : <AlertCircle size={80} className="text-white/90" />}
             </div>
-            <div className="flex gap-3">
-              <button onClick={() => setShowScore(false)} className="flex-1 px-4 py-2 border rounded-lg hover:bg-gray-50">Edit Lagi</button>
-              <button onClick={nextBrief} className="flex-1 px-4 py-2 bg-indigo-600 text-white rounded-lg font-bold hover:bg-indigo-700 flex justify-center items-center gap-2"><RefreshCcw size={16} /> Tantangan Baru</button>
+            
+            <div className="p-6 text-center">
+              <h2 className="text-2xl font-bold text-gray-800 mb-1">{scoreData.score >= 80 ? "Hebat Sekali!" : "Coba Lagi Yuk!"}</h2>
+              <div className="text-5xl font-black text-gray-800 mb-4">{scoreData.score}<span className="text-lg text-gray-400 font-medium">/100</span></div>
+              
+              <div className="bg-gray-50 rounded-lg p-4 mb-6 text-left border border-gray-100 max-h-48 overflow-y-auto">
+                <p className="text-xs font-bold text-gray-400 uppercase mb-2">Catatan Klien:</p>
+                <ul className="space-y-2 text-sm">
+                  {scoreData.feedback.map((fb, idx) => (
+                    <li key={idx} className="flex gap-2 items-start">
+                      <span>{fb}</span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+
+              <div className="flex gap-3">
+                <button onClick={() => setShowScore(false)} className="flex-1 py-3 border border-gray-300 rounded-xl font-bold text-gray-600 hover:bg-gray-50">Perbaiki</button>
+                <button onClick={nextBrief} className="flex-1 py-3 bg-blue-600 text-white rounded-xl font-bold hover:bg-blue-700 flex justify-center items-center gap-2">
+                  <RefreshCcw size={18} /> Tantangan Baru
+                </button>
+              </div>
             </div>
           </div>
         </div>
